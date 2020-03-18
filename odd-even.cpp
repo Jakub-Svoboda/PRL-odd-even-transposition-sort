@@ -33,10 +33,12 @@ void loadFile(){
 		if	(!fin.good()){			//stop at file end
 			break;
 		}	
+		cout << loadedNum << " ";
 		MPI_Send(&loadedNum, 1, MPI_INT, targetProcessNum, TAG, MPI_COMM_WORLD); //send init number
 		targetProcessNum++;
 	}
 	fin.close();  	
+	cout << endl;
 }	
 	
 int main(int argc, char *argv[]){
@@ -46,6 +48,11 @@ int main(int argc, char *argv[]){
 	MPI_Init(&argc, &argv);			//initialize MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &numOfProcessors); //get the number of availible processes
 	MPI_Comm_rank(MPI_COMM_WORLD ,&processID); 	//get the ID of this process
+
+	if (numOfProcessors == 0){
+		cerr << "The number of processors cannot be zero." << endl;
+		exit(1);
+	}
 
 	if (processID == 0) {
 		loadFile();
@@ -77,7 +84,7 @@ int main(int argc, char *argv[]){
 		if ((processID % 2 == 1) && (processID < oddMax)){		//1,3,5,7,9
 			MPI_Send(&number, 1, MPI_INT, processID+1, TAG, MPI_COMM_WORLD);	//send num
 			MPI_Recv(&number, 1, MPI_INT, processID+1, TAG, MPI_COMM_WORLD, &mpiStat);   //receive response
-		}else if ((processID !=0) && (processID <= oddMax)){	 //0,2,4,6,8
+		} else if ((processID !=0) && (processID <= oddMax)){	 //0,2,4,6,8
 			MPI_Recv(&neighNumber, 1, MPI_INT, processID-1, TAG, MPI_COMM_WORLD, &mpiStat); //if even, then receive first
 			if (neighNumber > number){	//if the number on left is larger
 				MPI_Send(&number, 1, MPI_INT, processID-1, TAG, MPI_COMM_WORLD);	//then send mine back
@@ -89,12 +96,11 @@ int main(int argc, char *argv[]){
 		} 
 	}
 
-	int* final = new int [numOfProcessors];
-	//final=(int*) malloc(numprocs*sizeof(int));
+	int* out = new int [numOfProcessors];
 	for (int i=1; i<numOfProcessors; i++){
 		if (processID == 0){		//if master, receive
 			MPI_Recv(&neighNumber, 1, MPI_INT, i, TAG, MPI_COMM_WORLD, &mpiStat); 	
-			final[i] = neighNumber;
+			out[i] = neighNumber;
 		}
 		if (processID == i) {
 			MPI_Send(&number, 1, MPI_INT, 0, TAG,  MPI_COMM_WORLD);
@@ -102,9 +108,9 @@ int main(int argc, char *argv[]){
 	}
 
 	if (processID == 0){
-		final[0] = number;
+		out[0] = number;
 		for (int i=0; i<numOfProcessors; i++){
-			cout << "proc: "<< i <<" num: "<< final[i] << endl;
+			cout << out[i] << endl;
 		}
 	}
 	
