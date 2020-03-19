@@ -5,9 +5,6 @@ from decimal import Decimal
 
 
 
-
-
-
 def execCycle(i):
 	#out = subprocess.Popen(['mpic++', '--prefix', '/usr/local/share/OpenMPI', "-o", "oets", "testscript.cpp"])
 	#time.sleep(1)
@@ -24,9 +21,6 @@ def execCycle(i):
 	uklid = subprocess.Popen(["rm", "-f", "numbers"])
 	
 	return myStr
-
-
-
 
 
 
