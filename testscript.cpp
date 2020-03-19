@@ -33,12 +33,10 @@ void loadFile(){
 		if	(!fin.good()){			//stop at file end
 			break;
 		}	
-		cout << loadedNum << " ";
 		MPI_Send(&loadedNum, 1, MPI_INT, targetProcessNum, TAG, MPI_COMM_WORLD); //send init number
 		targetProcessNum++;
 	}
 	fin.close();  	
-	cout << endl;
 }	
 	
 
@@ -65,8 +63,13 @@ int main(int argc, char *argv[]){
 
 	//Odd even transposition sort cycle:			
 	uint32_t evenMax = (2*(numOfProcessors/2)) -1;	//10->8,  11->8				                 
-    uint32_t oddMax = 2 *((numOfProcessors-1)/2);	//10->8,  11->10
+	uint32_t oddMax = 2 *((numOfProcessors-1)/2);	//10->8,  11->10
 
+	double start, end;
+
+	if (processID == 0){
+		start = MPI_Wtime();
+	}
 	for (int i = 1; i <= (numOfProcessors/2); i++){
 		if ((processID % 2 == 0) && (processID < evenMax)){			//0,2,4,6,8
 			MPI_Send(&number, 1, MPI_INT, processID+1, TAG, MPI_COMM_WORLD);	//send num
@@ -97,6 +100,7 @@ int main(int argc, char *argv[]){
 		} 
 	}
 
+
 	int* out = new int [numOfProcessors];
 	for (int i=1; i<numOfProcessors; i++){
 		if (processID == 0){		//if master, receive
@@ -107,18 +111,18 @@ int main(int argc, char *argv[]){
 			MPI_Send(&number, 1, MPI_INT, 0, TAG,  MPI_COMM_WORLD);
 		}
 	}
-
+	
 	if (processID == 0){
 		out[0] = number;
-		for (int i=0; i<numOfProcessors; i++){
-			cout << out[i] << endl;
-		}
+		end = MPI_Wtime();
+		cout<< fixed << end - start << endl;
 	}
-	
 	MPI_Finalize(); 
-	return 0;
 
-}	
+	return 0;		
+}    
+
+
 
 
 
